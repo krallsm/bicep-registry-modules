@@ -37,6 +37,16 @@ param minimumTlsVersion string = 'TLS12'
 @description('Optional. The name of the secret. ie. subs/rg/profile/secret.')
 param secretName string = ''
 
+@allowed([
+  'Customized'
+  'TLS10_2019'
+  'TLS12_2022'
+  'TLS12_2023'
+])
+param cipherSuiteSetType string
+
+param customizedCipherSuiteSet object = {}
+
 resource profile 'Microsoft.Cdn/profiles@2023-05-01' existing = {
   name: profileName
 
@@ -45,7 +55,7 @@ resource profile 'Microsoft.Cdn/profiles@2023-05-01' existing = {
   }
 }
 
-resource customDomain 'Microsoft.Cdn/profiles/customDomains@2023-05-01' = {
+resource customDomain 'Microsoft.Cdn/profiles/customDomains@2025-04-15' = {
   name: name
   parent: profile
   properties: {
@@ -63,6 +73,8 @@ resource customDomain 'Microsoft.Cdn/profiles/customDomains@2023-05-01' = {
       : null
     tlsSettings: {
       certificateType: certificateType
+      cipherSuiteSetType: cipherSuiteSetType
+      customizedCipherSuiteSet: !empty(customizedCipherSuiteSet) ? customizedCipherSuiteSet : null
       minimumTlsVersion: minimumTlsVersion
       secret: !(empty(secretName))
         ? {

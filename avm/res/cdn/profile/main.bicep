@@ -252,6 +252,8 @@ module profile_customDomains 'customdomain/main.bicep' = [
       azureDnsZoneResourceId: customDomain.?azureDnsZoneResourceId
       extendedProperties: customDomain.?extendedProperties
       certificateType: customDomain.certificateType
+      cipherSuiteSetType: customDomain.?cipherSuiteSetType
+      customizedCipherSuiteSet: customDomain.?customizedCipherSuiteSet
       minimumTlsVersion: customDomain.?minimumTlsVersion
       preValidatedCustomDomainResourceId: customDomain.?preValidatedCustomDomainResourceId
       secretName: customDomain.?secretName
