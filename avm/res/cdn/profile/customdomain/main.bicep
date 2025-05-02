@@ -117,6 +117,12 @@ type customDomainType = {
   @description('Required. The type of the certificate.')
   certificateType: 'AzureFirstPartyManagedCertificate' | 'CustomerCertificate' | 'ManagedCertificate'
 
+  @description('Optional. The cipher suite set type.')
+  cipherSuiteSetType: 'Customized' | 'TLS10_2019' | 'TLS12_2022' | 'TLS12_2023'
+
+  @description('Optional. The customized cipher suite set.')
+  customizedCipherSuiteSet: object?
+
   @description('Optional. The resource ID of the Azure DNS zone.')
   azureDnsZoneResourceId: string?
 
