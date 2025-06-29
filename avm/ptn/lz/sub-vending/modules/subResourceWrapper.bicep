@@ -26,6 +26,8 @@ param subscriptionManagementGroupId string = ''
 @sys.description('An object of tag key/value pairs to be appended to a subscription. NOTE: Tags will only be overwriten if existing tag exists with same key; values provided here win.')
 param subscriptionTags object = {}
 
+param subscriptionDisplayName string = ''
+
 @sys.description('Whether to create a virtual network or not.')
 param virtualNetworkEnabled bool = false
 
@@ -114,8 +116,6 @@ param roleAssignments roleAssignmentType[] = []
 
 @description('Supply an array of objects containing the details of the PIM role assignments to create.')
 param pimRoleAssignments pimRoleAssignmentTypeType[] = []
-
-param subscriptionDisplayName string = ''
 
 @sys.description('Disable telemetry collection by this module. For more information on the telemetry collected by this module, that is controlled by this parameter, see this page in the wiki: [Telemetry Tracking Using Customer Usage Attribution (PID)](https://github.com/Azure/bicep-lz-vending/wiki/Telemetry)')
 param enableTelemetry bool = true
@@ -1343,7 +1343,7 @@ module createLzActivePimRoleAssignmentsRsgsNotSelf 'br/public:avm/ptn/authorizat
   }
 ]
 
-module createResourceGroupForDeploymentScript 'br/public:avm/res/resources/resource-group:0.4.1' = if (!empty(resourceProviders)) {
+module createResourceGroupForDeploymentScript 'br/public:avm/res/resources/resource-group:0.4.1' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   scope: subscription(subscriptionId)
   name: deploymentNames.createResourceGroupForDeploymentScript
   params: {
@@ -1363,7 +1363,7 @@ module createResourceGroupForRouteTables 'br/public:avm/res/resources/resource-g
   }
 }
 
-module createManagedIdentityForDeploymentScript 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.1' = if (!empty(resourceProviders)) {
+module createManagedIdentityForDeploymentScript 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.1' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   scope: resourceGroup(subscriptionId, deploymentScriptResourceGroupName)
   name: deploymentNames.createDeploymentScriptManagedIdentity
   dependsOn: [
@@ -1376,7 +1376,7 @@ module createManagedIdentityForDeploymentScript 'br/public:avm/res/managed-ident
   }
 }
 
-module createRoleAssignmentsDeploymentScript 'br/public:avm/ptn/authorization/role-assignment:0.2.2' = if (!empty(resourceProviders)) {
+module createRoleAssignmentsDeploymentScript 'br/public:avm/ptn/authorization/role-assignment:0.2.2' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   name: take('${deploymentNames.createRoleAssignmentsDeploymentScript}', 64)
   params: {
     location: deploymentScriptLocation
@@ -1387,7 +1387,7 @@ module createRoleAssignmentsDeploymentScript 'br/public:avm/ptn/authorization/ro
   }
 }
 
-module createRoleAssignmentsDeploymentScriptStorageAccount 'br/public:avm/ptn/authorization/role-assignment:0.2.2' = if (!empty(resourceProviders)) {
+module createRoleAssignmentsDeploymentScriptStorageAccount 'br/public:avm/ptn/authorization/role-assignment:0.2.2' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   name: take('${deploymentNames.createRoleAssignmentsDeploymentScriptStorageAccount}', 64)
   params: {
     location: deploymentScriptLocation
@@ -1400,7 +1400,7 @@ module createRoleAssignmentsDeploymentScriptStorageAccount 'br/public:avm/ptn/au
   }
 }
 
-module createDsNsg 'br/public:avm/res/network/network-security-group:0.5.1' = if (!empty(resourceProviders)) {
+module createDsNsg 'br/public:avm/res/network/network-security-group:0.5.1' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   scope: resourceGroup(subscriptionId, deploymentScriptResourceGroupName)
   dependsOn: [
     createResourceGroupForDeploymentScript
@@ -1413,7 +1413,7 @@ module createDsNsg 'br/public:avm/res/network/network-security-group:0.5.1' = if
   }
 }
 
-module dsFilePrivateDNSZone 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (!empty(resourceProviders)) {
+module dsFilePrivateDNSZone 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   name: deploymentNames.createDsFilePrivateDnsZone
   scope: resourceGroup(subscriptionId, deploymentScriptResourceGroupName)
   params: {
@@ -1428,7 +1428,7 @@ module dsFilePrivateDNSZone 'br/public:avm/res/network/private-dns-zone:0.7.1' =
   }
 }
 
-module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.20.0' = if (!empty(resourceProviders)) {
+module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.20.0' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   dependsOn: [
     createRoleAssignmentsDeploymentScriptStorageAccount
   ]
@@ -1466,7 +1466,7 @@ module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.20.0'
   }
 }
 
-module createDsVnet 'br/public:avm/res/network/virtual-network:0.7.0' = if (!empty(resourceProviders)) {
+module createDsVnet 'br/public:avm/res/network/virtual-network:0.7.0' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   scope: resourceGroup(subscriptionId, deploymentScriptResourceGroupName)
   name: deploymentNames.createdsVnet
   params: {

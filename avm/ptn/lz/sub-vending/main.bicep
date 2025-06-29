@@ -285,6 +285,8 @@ param enableTelemetry bool = true
 @description('Optional. The name of the resource group to create the deployment script for resource providers registration.')
 param deploymentScriptResourceGroupName string = 'rsg-${deployment().location}-ds'
 
+param deploymentScriptRenameSubscriptionName string = 'ds-rename-subscription-${deployment().location}'
+
 @description('Optional. The name of the deployment script to register resource providers.')
 param deploymentScriptName string = 'ds-${deployment().location}'
 
@@ -483,6 +485,7 @@ module createSubscriptionResources './modules/subResourceWrapper.bicep' = if (su
     roleAssignments: roleAssignments
     pimRoleAssignments: pimRoleAssignments
     deploymentScriptResourceGroupName: deploymentScriptResourceGroupName
+    deploymentScriptRenameSubscriptionName: deploymentScriptRenameSubscriptionName
     deploymentScriptName: deploymentScriptName
     deploymentScriptManagedIdentityName: deploymentScriptManagedIdentityName
     resourceProviders: resourceProviders
