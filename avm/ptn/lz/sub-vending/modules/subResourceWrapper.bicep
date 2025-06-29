@@ -115,7 +115,7 @@ param roleAssignments roleAssignmentType[] = []
 @description('Supply an array of objects containing the details of the PIM role assignments to create.')
 param pimRoleAssignments pimRoleAssignmentTypeType[] = []
 
-param subscriptionDisplayName string
+param subscriptionDisplayName string = ''
 
 @sys.description('Disable telemetry collection by this module. For more information on the telemetry collected by this module, that is controlled by this parameter, see this page in the wiki: [Telemetry Tracking Using Customer Usage Attribution (PID)](https://github.com/Azure/bicep-lz-vending/wiki/Telemetry)')
 param enableTelemetry bool = true
@@ -129,6 +129,8 @@ param deploymentScriptLocation string = deployment().location
 
 @sys.description('The name of the deployment script to register resource providers')
 param deploymentScriptName string
+
+param deploymentScriptRenameSubscriptionName string = ''
 
 @maxLength(64)
 @sys.description('The name of the private virtual network for the deployment script. The string must consist of a-z, A-Z, 0-9, -, _, and . (period) and be between 2 and 64 characters in length.')
@@ -328,6 +330,10 @@ var deploymentNames = {
   )
   registerResourceProviders: take(
     'lz-vend-ds-create-${uniqueString(subscriptionId, deploymentScriptResourceGroupName, deploymentScriptName, deployment().name)}',
+    64
+  )
+  renameSubscription: take(
+    'lz-vend-sub-rename-${uniqueString(subscriptionId, deploymentScriptResourceGroupName, deploymentScriptName, deployment().name)}',
     64
   )
   createDeploymentScriptManagedIdentity: take(
@@ -1517,6 +1523,31 @@ module registerResourceProviders 'br/public:avm/res/resources/deployment-script:
       : null
     arguments: '-resourceProviders \'${resourceProvidersFormatted}\' -resourceProvidersFeatures -subscriptionId ${subscriptionId}'
     scriptContent: loadTextContent('../scripts/Register-SubscriptionResourceProviderList.ps1')
+  }
+}
+
+module renameSubscription 'br/public:avm/res/resources/deployment-script:0.5.1' = if (!empty(subscriptionDisplayName) && !empty(subscriptionId)) {
+  scope: resourceGroup(subscriptionId, deploymentScriptResourceGroupName)
+  name: deploymentNames.renameSubscription
+  params: {
+    name: deploymentScriptRenameSubscriptionName
+    kind: 'AzurePowerShell'
+    azPowerShellVersion: '12.3'
+    cleanupPreference: 'Always'
+    enableTelemetry: enableTelemetry
+    location: deploymentScriptLocation
+    retentionInterval: 'P1D'
+    timeout: 'PT1H'
+    runOnce: true
+    managedIdentities: !(empty(resourceProviders))
+      ? {
+          userAssignedResourcesIds: [
+            createManagedIdentityForDeploymentScript.outputs.resourceId
+          ]
+        }
+      : null
+    arguments: '-subscriptionDisplayName \'${subscriptionDisplayName}\' -subscriptionId ${subscriptionId}'
+    scriptContent: loadTextContent('../scripts/Rename-Subscription.ps1')
   }
 }
 
