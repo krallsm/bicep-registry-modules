@@ -1420,7 +1420,7 @@ module dsFilePrivateDNSZone 'br/public:avm/res/network/private-dns-zone:0.7.1' =
   }
 }
 
-module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.20.0' = if (!empty(resourceProviders)) {
+module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.23.0' = if (!empty(resourceProviders)) {
   dependsOn: [
     createRoleAssignmentsDeploymentScriptStorageAccount
   ]
@@ -1489,7 +1489,7 @@ module createDsVnet 'br/public:avm/res/network/virtual-network:0.7.0' = if (!emp
     enableTelemetry: enableTelemetry
   }
 }
-module registerResourceProviders 'br/public:avm/res/resources/deployment-script:0.2.3' = if (!empty(resourceProviders)) {
+module registerResourceProviders 'br/public:avm/res/resources/deployment-script:0.5.1' = if (!empty(resourceProviders)) {
   scope: resourceGroup(subscriptionId, deploymentScriptResourceGroupName)
   name: deploymentNames.registerResourceProviders
   params: {
