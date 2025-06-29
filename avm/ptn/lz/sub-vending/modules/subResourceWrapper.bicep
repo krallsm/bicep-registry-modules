@@ -362,6 +362,10 @@ var deploymentNames = {
     'lz-vend-ds-pdns-create-${uniqueString(subscriptionId, deploymentScriptResourceGroupName,deploymentScriptLocation,deploymentScriptStorageAccountName, deploymentScriptVirtualNetworkName, deployment().name)}',
     64
   )
+  renameSubscription: take(
+    'lz-vend-sub-rename-${uniqueString(subscriptionId, subscriptionDisplayName, deployment().name)}',
+    64
+  )
 }
 
 // Role Assignments filtering and splitting
@@ -1357,7 +1361,7 @@ module createResourceGroupForRouteTables 'br/public:avm/res/resources/resource-g
   }
 }
 
-module createManagedIdentityForDeploymentScript 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.1' = if (!empty(resourceProviders)) {
+module createManagedIdentityForDeploymentScript 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.1' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   scope: resourceGroup(subscriptionId, deploymentScriptResourceGroupName)
   name: deploymentNames.createDeploymentScriptManagedIdentity
   dependsOn: [
@@ -1394,7 +1398,7 @@ module createRoleAssignmentsDeploymentScriptStorageAccount 'br/public:avm/ptn/au
   }
 }
 
-module createDsNsg 'br/public:avm/res/network/network-security-group:0.5.1' = if (!empty(resourceProviders)) {
+module createDsNsg 'br/public:avm/res/network/network-security-group:0.5.1' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   scope: resourceGroup(subscriptionId, deploymentScriptResourceGroupName)
   dependsOn: [
     createResourceGroupForDeploymentScript
@@ -1407,7 +1411,7 @@ module createDsNsg 'br/public:avm/res/network/network-security-group:0.5.1' = if
   }
 }
 
-module dsFilePrivateDNSZone 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (!empty(resourceProviders)) {
+module dsFilePrivateDNSZone 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   name: deploymentNames.createDsFilePrivateDnsZone
   scope: resourceGroup(subscriptionId, deploymentScriptResourceGroupName)
   params: {
@@ -1422,7 +1426,7 @@ module dsFilePrivateDNSZone 'br/public:avm/res/network/private-dns-zone:0.7.1' =
   }
 }
 
-module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.23.0' = if (!empty(resourceProviders)) {
+module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.23.0' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   dependsOn: [
     createRoleAssignmentsDeploymentScriptStorageAccount
   ]
@@ -1460,7 +1464,7 @@ module createDsStorageAccount 'br/public:avm/res/storage/storage-account:0.23.0'
   }
 }
 
-module createDsVnet 'br/public:avm/res/network/virtual-network:0.7.0' = if (!empty(resourceProviders)) {
+module createDsVnet 'br/public:avm/res/network/virtual-network:0.7.0' = if (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId))) {
   scope: resourceGroup(subscriptionId, deploymentScriptResourceGroupName)
   name: deploymentNames.createdsVnet
   params: {
@@ -1533,15 +1537,17 @@ module renameSubscription 'br/public:avm/res/resources/deployment-script:0.5.1' 
     retentionInterval: 'P1D'
     timeout: 'PT1H'
     runOnce: true
-    managedIdentities: !(empty(resourceProviders))
+    managedIdentities: (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId)))
       ? {
           userAssignedResourcesIds: [
             createManagedIdentityForDeploymentScript.outputs.resourceId
           ]
         }
       : null
-    storageAccountResourceId: !(empty(resourceProviders)) ? createDsStorageAccount.outputs.resourceId : null
-    subnetResourceIds: !(empty(resourceProviders))
+    storageAccountResourceId: (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId)))
+      ? createDsStorageAccount.outputs.resourceId
+      : null
+    subnetResourceIds: (!empty(resourceProviders) || (!empty(subscriptionDisplayName) && !empty(subscriptionId)))
       ? [filter(createDsVnet.outputs.subnetResourceIds, subnetResourceId => contains(subnetResourceId, 'ds-subnet'))[0]]
       : null
     arguments: '-subscriptionDisplayName \'${subscriptionDisplayName}\' -subscriptionId ${subscriptionId}'
