@@ -298,6 +298,8 @@ param deploymentScriptVirtualNetworkName string = 'vnet-ds-${deployment().locati
 @description('Optional. The name of the network security group for the deployment script private subnet.')
 param deploymentScriptNetworkSecurityGroupName string = 'nsg-ds-${deployment().location}'
 
+param deploymentScriptRenameSubscriptionName string = 'renameSub-prod-${deployment().location}-ds'
+
 @description('Optional. The address prefix of the private virtual network for the deployment script.')
 param virtualNetworkDeploymentScriptAddressPrefix string = '192.168.0.0/24'
 
@@ -451,6 +453,7 @@ module createSubscription './modules/subscriptionAlias.bicep' = if (subscription
 module createSubscriptionResources './modules/subResourceWrapper.bicep' = if (subscriptionAliasEnabled || !empty(existingSubscriptionId)) {
   name: deploymentNames.createSubscriptionResources
   params: {
+    subscriptionDisplayName: subscriptionDisplayName
     subscriptionId: (subscriptionAliasEnabled && empty(existingSubscriptionId))
       ? createSubscription.outputs.subscriptionId
       : existingSubscriptionId
@@ -484,6 +487,7 @@ module createSubscriptionResources './modules/subResourceWrapper.bicep' = if (su
     deploymentScriptResourceGroupName: deploymentScriptResourceGroupName
     deploymentScriptName: deploymentScriptName
     deploymentScriptManagedIdentityName: deploymentScriptManagedIdentityName
+    deploymentScriptRenameSubscriptionName: deploymentScriptRenameSubscriptionName
     resourceProviders: resourceProviders
     deploymentScriptVirtualNetworkName: deploymentScriptVirtualNetworkName
     deploymentScriptLocation: deploymentScriptLocation
