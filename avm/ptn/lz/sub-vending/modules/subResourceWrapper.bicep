@@ -115,6 +115,8 @@ param roleAssignments roleAssignmentType[] = []
 @description('Supply an array of objects containing the details of the PIM role assignments to create.')
 param pimRoleAssignments pimRoleAssignmentTypeType[] = []
 
+param subscriptionDisplayName string
+
 @sys.description('Disable telemetry collection by this module. For more information on the telemetry collected by this module, that is controlled by this parameter, see this page in the wiki: [Telemetry Tracking Using Customer Usage Attribution (PID)](https://github.com/Azure/bicep-lz-vending/wiki/Telemetry)')
 param enableTelemetry bool = true
 
